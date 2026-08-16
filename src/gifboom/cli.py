@@ -87,6 +87,23 @@ def _run(coro):
     return asyncio.run(coro)
 
 
+def _get_provider(name: str | None):
+    """Resolve a provider, printing a clear setup hint when its API key is missing."""
+    from gifboom.providers import BaseProvider
+    from gifboom.providers.registry import ProviderNotConfigured, get_provider
+
+    try:
+        provider: BaseProvider = get_provider(name)  # type: ignore[arg-type]
+        return provider
+    except ProviderNotConfigured as e:
+        rprint(f"[bold red]⚠ Provider '{e.provider}' requires an API key.[/]")
+        rprint(f"  Env var:   [bold]{e.env_var}[/bold]")
+        rprint(f"  Get a key: [link={e.url}]{e.url}[/link]")
+        rprint(f"  Set it:    [bold green]gifboom config set {e.env_var}[/bold green]  [dim](interactive)[/dim]")
+        rprint(f"             [bold green]gifboom config set {e.env_var}=your_key[/bold green]")
+        raise typer.Exit(1) from None
+
+
 def _format_result(items, fmt: str):
     if fmt == "json":
         import dataclasses
@@ -141,9 +158,7 @@ def search(
 
       gifboom search "dance" --format table --rating pg
     """
-    from gifboom.providers.registry import get_provider
-
-    p = get_provider(provider)  # type: ignore[arg-type]
+    p = _get_provider(provider)
     result = _run(p.search(query, limit=limit, offset=offset, rating=rating))
 
     if fmt == "table":
@@ -195,10 +210,8 @@ def download(
     from gifboom.downloader import download_gif
 
     if url.startswith("q:"):
-        from gifboom.providers.registry import get_provider
-
         query = url[2:].strip()
-        result = _run(get_provider(provider).search(query, limit=1))  # type: ignore
+        result = _run(_get_provider(provider).search(query, limit=1))
         if not result.items:
             rprint("[red]No results found.[/]")
             raise typer.Exit(1)
@@ -494,8 +507,8 @@ def keys(
         if item["env_var"]:
             env_var = item["env_var"]
             rprint(
-                f"💡 After getting key, set it via: "
-                f"[bold green]gifboom config set {env_var}=your_key[/bold green]"
+                f"💡 After getting the key, set it via: "
+                f"[bold green]gifboom config set {env_var}[/bold green]  [dim](interactive)[/dim]"
             )
         if open_browser:
             webbrowser.open(item["url"])
@@ -522,21 +535,54 @@ def keys(
             "[cyan]gifboom keys <provider>[/cyan] (e.g. `gifboom keys giphy`)"
         )
         rprint(
-            "💡 [bold]To set your API key:[/] [cyan]gifboom config set GIPHY_API_KEY=your_key[/cyan]\n"
+            "💡 [bold]To set your API key:[/] [cyan]gifboom config set GIPHY_API_KEY[/cyan]  [dim](interactive)[/dim]"
         )
 
 
 # ─── config ──────────────────────────────────────────────────────────────────
 
+_PROVIDER_ENV_VARS: dict[str, str] = {
+    "giphy": "GIPHY_API_KEY",
+    "tenor": "TENOR_API_KEY",
+    "klipy": "KLIPY_API_KEY",
+}
+_KNOWN_KEYS = set(_PROVIDER_ENV_VARS.values())
+
+
+def _save_env_file(env_file: Path, key: str, value: str) -> None:
+    env_file.parent.mkdir(parents=True, exist_ok=True)
+    lines = env_file.read_text().splitlines() if env_file.exists() else []
+    lines = [line for line in lines if not line.startswith(key + "=")]
+    lines.append(f"{key}={value}")
+    env_file.write_text("\n".join(lines) + "\n")
+
 
 @app.command()
 def config(
-    action: Annotated[str, typer.Argument(help="Action: show | set KEY=VALUE")],
+    action: Annotated[str, typer.Argument(help="Action: show | set [KEY=VALUE]")],
     key_value: Annotated[
-        str | None, typer.Argument(help="Setting to configure e.g. GIPHY_API_KEY=xyz")
+        str | None,
+        typer.Argument(
+            help="Setting to configure. KEY=VALUE, bare KEY (prompts for value), "
+            "or a provider name: giphy | tenor | klipy"
+        ),
     ] = None,
 ):
-    """⚙️ View or update local gifboom settings (~/.gifboom/.env)."""
+    """⚙️ View or update local gifboom settings (~/.gifboom/.env).
+
+    Secrets (API keys) are prompted for with hidden input — they never
+    appear in your shell history.
+
+    Examples:
+
+      gifboom config show
+
+      gifboom config set GIPHY_API_KEY=your_key
+
+      gifboom config set GIPHY_API_KEY      # hidden interactive prompt
+
+      gifboom config set giphy              # same, via provider name
+    """
     from gifboom.config import settings
 
     env_file = Path.home() / ".gifboom" / ".env"
@@ -548,16 +594,29 @@ def config(
         rprint(f"  KLIPY_API_KEY:    {'***' if settings.klipy_api_key else '[red]not set[/]'}")
         rprint(f"  default_provider: {settings.default_provider}")
         rprint(f"  cache_dir:        {settings.cache_dir}")
-    elif action == "set" and key_value:
-        env_file.parent.mkdir(parents=True, exist_ok=True)
-        lines = env_file.read_text().splitlines() if env_file.exists() else []
-        key = key_value.split("=")[0]
-        lines = [line for line in lines if not line.startswith(key + "=")]
-        lines.append(key_value)
-        env_file.write_text("\n".join(lines) + "\n")
-        rprint(f"[green]✓[/] Saved {key_value!r} to {env_file}")
+    elif action == "set":
+        if not key_value:
+            rprint("[red]Missing setting.[/] Usage: [cyan]gifboom config set KEY=VALUE[/cyan]")
+            rprint("  Provider keys:")
+            for provider, env_var in _PROVIDER_ENV_VARS.items():
+                rprint(f"    [cyan]{provider}[/] → {env_var}")
+            raise typer.Exit(1)
+        key, _, value = key_value.partition("=")
+        key = key.strip().upper()
+
+        # Convenience: bare provider name maps to its env var.
+        if key.lower() in _PROVIDER_ENV_VARS and key not in _KNOWN_KEYS:
+            key = _PROVIDER_ENV_VARS[key.lower()]
+
+        if not value:
+            if key not in _KNOWN_KEYS:
+                rprint(f"[yellow]⚠ Unknown setting '{key}' — still saving.[/]")
+            value = typer.prompt(f"Enter value for {key}", hide_input=True, confirmation_prompt=True)
+
+        _save_env_file(env_file, key, value)
+        rprint(f"[green]✓[/] Saved {key}=*** to {env_file}")
     else:
-        rprint("[red]Usage:[/] gifboom config show | set KEY=VALUE")
+        rprint("[red]Usage:[/] gifboom config show | set [KEY=VALUE]")
 
 
 # ─── version ─────────────────────────────────────────────────────────────────

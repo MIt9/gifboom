@@ -3,5 +3,5 @@ GifBoom — Search, download, convert and process GIFs.
 CLI & AI skill for GIPHY, Tenor, KLIPY, and local files.
 """
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 __all__ = ["__version__"]

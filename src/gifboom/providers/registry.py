@@ -20,6 +20,35 @@ _PROVIDERS: dict[str, type[BaseProvider]] = {
     "local": LocalProvider,
 }
 
+# Provider → env var name + API key portal URL.
+PROVIDER_META: dict[str, dict[str, str]] = {
+    "giphy": {
+        "env_var": "GIPHY_API_KEY",
+        "url": "https://developers.giphy.com/dashboard/",
+    },
+    "tenor": {
+        "env_var": "TENOR_API_KEY",
+        "url": "https://developers.google.com/tenor/guides/quickstart",
+    },
+    "klipy": {
+        "env_var": "KLIPY_API_KEY",
+        "url": "https://klipy.co/developer",
+    },
+}
+
+
+class ProviderNotConfigured(RuntimeError):
+    """Raised when a provider requires an API key that isn't set."""
+
+    def __init__(self, provider: str, env_var: str, url: str):
+        self.provider = provider
+        self.env_var = env_var
+        self.url = url
+        super().__init__(
+            f"Provider '{provider}' requires an API key (env var {env_var}). "
+            f"Get one at {url}, then set it via: gifboom config set {env_var}=your_key"
+        )
+
 
 def get_provider(name: ProviderName | None = None) -> BaseProvider:
     """Return a provider instance by name. Falls back to default from settings."""
@@ -29,10 +58,8 @@ def get_provider(name: ProviderName | None = None) -> BaseProvider:
         raise ValueError(f"Unknown provider: {provider_name!r}. Choose from: {list(_PROVIDERS)}")
     instance = cls()
     if not instance.is_configured():
-        raise RuntimeError(
-            f"Provider '{provider_name}' requires an API key. "
-            f"Set the corresponding env var (e.g. GIPHY_API_KEY) or run: gifboom config set"
-        )
+        meta = PROVIDER_META.get(provider_name, {"env_var": "", "url": ""})
+        raise ProviderNotConfigured(provider_name, meta["env_var"], meta["url"])
     return instance
 
 
@@ -43,21 +70,16 @@ def available_providers() -> list[str]:
 
 def get_all_providers_info() -> list[dict]:
     """Return detailed metadata for all providers."""
-    env_vars = {
-        "giphy": "GIPHY_API_KEY",
-        "tenor": "TENOR_API_KEY",
-        "klipy": "KLIPY_API_KEY",
-        "local": "",
-    }
     info = []
     for name, cls in _PROVIDERS.items():
         instance = cls()
+        meta = PROVIDER_META.get(name, {})
         info.append(
             {
                 "name": name,
                 "configured": instance.is_configured(),
-                "url": instance.api_key_url,
-                "env_var": env_vars.get(name, ""),
+                "url": instance.api_key_url or meta.get("url", ""),
+                "env_var": meta.get("env_var", ""),
             }
         )
     return info

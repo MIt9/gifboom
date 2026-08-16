@@ -45,6 +45,57 @@ def test_registry_unknown_provider():
         get_provider("nonexistent")  # type: ignore
 
 
+def test_registry_not_configured_raises():
+    from gifboom.config import settings
+
+    settings.giphy_api_key = ""
+    from gifboom.providers.registry import ProviderNotConfigured, get_provider
+
+    with pytest.raises(ProviderNotConfigured) as exc_info:
+        get_provider("giphy")
+    assert exc_info.value.provider == "giphy"
+    assert exc_info.value.env_var == "GIPHY_API_KEY"
+    assert "config set GIPHY_API_KEY" in str(exc_info.value)
+
+
+def test_config_set_writes_env_file(tmp_path, monkeypatch):
+    from typer.testing import CliRunner
+
+    import gifboom.cli as cli
+
+    monkeypatch.setattr(cli.Path, "home", lambda: tmp_path)
+    result = CliRunner().invoke(cli.app, ["config", "set", "GIPHY_API_KEY=secret-key"])
+    assert result.exit_code == 0
+    env_file = tmp_path / ".gifboom" / ".env"
+    assert "GIPHY_API_KEY=secret-key" in env_file.read_text()
+
+
+def test_config_set_provider_name_prompts(tmp_path, monkeypatch):
+    from typer.testing import CliRunner
+
+    import gifboom.cli as cli
+
+    monkeypatch.setattr(cli.Path, "home", lambda: tmp_path)
+    result = CliRunner().invoke(cli.app, ["config", "set", "giphy"], input="secret-key\nsecret-key\n")
+    assert result.exit_code == 0
+    env_file = tmp_path / ".gifboom" / ".env"
+    assert "GIPHY_API_KEY=secret-key" in env_file.read_text()
+
+
+def test_config_set_replaces_existing_key(tmp_path, monkeypatch):
+    from typer.testing import CliRunner
+
+    import gifboom.cli as cli
+
+    monkeypatch.setattr(cli.Path, "home", lambda: tmp_path)
+    runner = CliRunner()
+    runner.invoke(cli.app, ["config", "set", "GIPHY_API_KEY=old"])
+    runner.invoke(cli.app, ["config", "set", "GIPHY_API_KEY=new"])
+    env_file = tmp_path / ".gifboom" / ".env"
+    assert "GIPHY_API_KEY=new" in env_file.read_text()
+    assert "GIPHY_API_KEY=old" not in env_file.read_text()
+
+
 def test_converter_still_requires_ffmpeg(tmp_path, monkeypatch):
     """_require_ffmpeg should raise if ffmpeg is missing."""
     import subprocess

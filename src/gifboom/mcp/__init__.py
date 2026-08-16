@@ -345,7 +345,7 @@ async def _dispatch(name: str, args: dict) -> Any:
                     "provider": p_name,
                     "url": item["url"],
                     "env_var": item["env_var"],
-                    "instructions": f"Set key via: gifboom config set {item['env_var']}=your_key",
+                    "instructions": f"Set key via: gifboom config set {item['env_var']} (=your_key)",
                 }
         raise ValueError(f"Unknown provider: {p_name}")
 
