@@ -6,7 +6,7 @@
 
 [![PyPI Version](https://img.shields.io/pypi/v/gifboom?style=for-the-badge&color=ff4757)](https://pypi.org/project/gifboom/)
 [![Python Version](https://img.shields.io/pypi/pyversions/gifboom?style=for-the-badge&color=2ed573)](https://pypi.org/project/gifboom/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.style=for-the-badge&style=for-the-badge&color=70a1ff)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-70a1ff?style=for-the-badge)](LICENSE)
 [![CI Status](https://img.shields.io/github/actions/workflow/status/MIt9/gifboom/ci.yml?branch=main&style=for-the-badge)](https://github.com/MIt9/gifboom/actions)
 
 <br/>
