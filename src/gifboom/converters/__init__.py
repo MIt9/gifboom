@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import subprocess
-import sys
 from pathlib import Path
 
 
@@ -99,18 +98,36 @@ def video_to_gif(
 
     # Pass 1: generate palette
     subprocess.run(
-        ["ffmpeg", "-y", *time_args, "-i", str(input_path),
-         "-vf", f"{vf_base},palettegen=max_colors={colors}",
-         str(palette)],
-        check=True, capture_output=True,
+        [
+            "ffmpeg",
+            "-y",
+            *time_args,
+            "-i",
+            str(input_path),
+            "-vf",
+            f"{vf_base},palettegen=max_colors={colors}",
+            str(palette),
+        ],
+        check=True,
+        capture_output=True,
     )
 
     # Pass 2: render GIF using palette
     subprocess.run(
-        ["ffmpeg", "-y", *time_args, "-i", str(input_path), "-i", str(palette),
-         "-lavfi", f"{vf_base} [x]; [x][1:v] paletteuse",
-         str(output_path)],
-        check=True, capture_output=True,
+        [
+            "ffmpeg",
+            "-y",
+            *time_args,
+            "-i",
+            str(input_path),
+            "-i",
+            str(palette),
+            "-lavfi",
+            f"{vf_base} [x]; [x][1:v] paletteuse",
+            str(output_path),
+        ],
+        check=True,
+        capture_output=True,
     )
 
     palette.unlink(missing_ok=True)
@@ -123,14 +140,32 @@ def gif_optimize(input_path: Path, output_path: Path, colors: int = 128) -> Path
     palette = output_path.with_suffix(".opt_palette.png")
 
     subprocess.run(
-        ["ffmpeg", "-y", "-i", str(input_path),
-         f"-vf", f"palettegen=max_colors={colors}", str(palette)],
-        check=True, capture_output=True,
+        [
+            "ffmpeg",
+            "-y",
+            "-i",
+            str(input_path),
+            "-vf",
+            f"palettegen=max_colors={colors}",
+            str(palette),
+        ],
+        check=True,
+        capture_output=True,
     )
     subprocess.run(
-        ["ffmpeg", "-y", "-i", str(input_path), "-i", str(palette),
-         "-lavfi", "paletteuse", str(output_path)],
-        check=True, capture_output=True,
+        [
+            "ffmpeg",
+            "-y",
+            "-i",
+            str(input_path),
+            "-i",
+            str(palette),
+            "-lavfi",
+            "paletteuse",
+            str(output_path),
+        ],
+        check=True,
+        capture_output=True,
     )
     palette.unlink(missing_ok=True)
     return output_path
@@ -154,7 +189,8 @@ def gif_still(
     _require_ffmpeg()
     subprocess.run(
         ["ffmpeg", "-y", "-ss", str(at), "-i", str(input_path), "-frames:v", "1", str(output_path)],
-        check=True, capture_output=True,
+        check=True,
+        capture_output=True,
     )
     return output_path
 
@@ -180,12 +216,18 @@ def gif_sheet(
     rows = -(-frames // cols)  # ceil division
     subprocess.run(
         [
-            "ffmpeg", "-y", "-i", str(input_path),
-            "-vf", f"select=not(mod(n\\,1)),scale=160:-1,tile={cols}x{rows}",
-            "-frames:v", "1",
+            "ffmpeg",
+            "-y",
+            "-i",
+            str(input_path),
+            "-vf",
+            f"select=not(mod(n\\,1)),scale=160:-1,tile={cols}x{rows}",
+            "-frames:v",
+            "1",
             str(output_path),
         ],
-        check=True, capture_output=True,
+        check=True,
+        capture_output=True,
     )
     return output_path
 
@@ -204,9 +246,20 @@ def gif_trim(
     """
     _require_ffmpeg()
     subprocess.run(
-        ["ffmpeg", "-y", "-ss", start, "-to", end, "-i", str(input_path),
-         "-lavfi", "split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse",
-         str(output_path)],
-        check=True, capture_output=True,
+        [
+            "ffmpeg",
+            "-y",
+            "-ss",
+            start,
+            "-to",
+            end,
+            "-i",
+            str(input_path),
+            "-lavfi",
+            "split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse",
+            str(output_path),
+        ],
+        check=True,
+        capture_output=True,
     )
     return output_path

@@ -12,8 +12,8 @@ class GifResult:
 
     id: str
     title: str
-    url: str                  # direct .gif URL
-    preview_url: str          # smaller preview
+    url: str  # direct .gif URL
+    preview_url: str  # smaller preview
     width: int
     height: int
     size_bytes: int

@@ -61,4 +61,3 @@ def get_all_providers_info() -> list[dict]:
             }
         )
     return info
-

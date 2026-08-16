@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import json
-import sys
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated
 
 import typer
+from rich import print as rprint
 from rich.console import Console
 from rich.table import Table
-from rich import print as rprint
 
 from gifboom import __version__
 
@@ -43,6 +42,7 @@ app.add_typer(convert_app)
 
 # ─── Global Callback & Version Flag ──────────────────────────────────────────
 
+
 def version_callback(value: bool):
     """Print version and exit when --version or -v is passed."""
     if value:
@@ -53,7 +53,7 @@ def version_callback(value: bool):
 @app.callback(invoke_without_command=True)
 def main(
     version: Annotated[
-        Optional[bool],
+        bool | None,
         typer.Option(
             "--version",
             "-v",
@@ -82,6 +82,7 @@ def main(
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
+
 def _run(coro):
     return asyncio.run(coro)
 
@@ -89,6 +90,7 @@ def _run(coro):
 def _format_result(items, fmt: str):
     if fmt == "json":
         import dataclasses
+
         print(json.dumps([dataclasses.asdict(i) for i in items], indent=2))
     elif fmt == "tsv":
         for i in items:
@@ -103,17 +105,28 @@ def _format_result(items, fmt: str):
 
 # ─── search ──────────────────────────────────────────────────────────────────
 
+
 @app.command()
 def search(
     query: Annotated[str, typer.Argument(help="Search query term (e.g. 'happy cat', 'dance')")],
-    provider: Annotated[Optional[str], typer.Option("--provider", "-p", help="Provider: giphy | tenor | klipy | local")] = None,
-    limit: Annotated[int, typer.Option("--limit", "-n", help="Max number of results to fetch")] = 10,
+    provider: Annotated[
+        str | None, typer.Option("--provider", "-p", help="Provider: giphy | tenor | klipy | local")
+    ] = None,
+    limit: Annotated[
+        int, typer.Option("--limit", "-n", help="Max number of results to fetch")
+    ] = 10,
     offset: Annotated[int, typer.Option("--offset", help="Pagination offset index")] = 0,
-    rating: Annotated[str, typer.Option("--rating", "-r", help="Content rating filter: g | pg | pg-13 | r")] = "g",
-    fmt: Annotated[str, typer.Option("--format", "-f", help="Output format: plain | json | tsv | markdown | table")] = "plain",
+    rating: Annotated[
+        str, typer.Option("--rating", "-r", help="Content rating filter: g | pg | pg-13 | r")
+    ] = "g",
+    fmt: Annotated[
+        str,
+        typer.Option("--format", "-f", help="Output format: plain | json | tsv | markdown | table"),
+    ] = "plain",
 ):
     """🔍 Search GIFs across GIPHY, Tenor, KLIPY, or local files."""
     from gifboom.providers.registry import get_provider
+
     p = get_provider(provider)  # type: ignore[arg-type]
     result = _run(p.search(query, limit=limit, offset=offset, rating=rating))
 
@@ -132,18 +145,27 @@ def search(
 
 # ─── download ────────────────────────────────────────────────────────────────
 
+
 @app.command()
 def download(
     url: Annotated[str, typer.Argument(help="Direct GIF URL or search query (e.g. 'q:happy cat')")],
-    output: Annotated[Optional[Path], typer.Option("--output", "-o", help="Custom output path for the downloaded .gif")] = None,
-    provider: Annotated[Optional[str], typer.Option("--provider", "-p", help="Provider if using 'q:query' syntax")] = None,
-    force: Annotated[bool, typer.Option("--force", help="Bypass local disk cache and force re-download")] = False,
+    output: Annotated[
+        Path | None,
+        typer.Option("--output", "-o", help="Custom output path for the downloaded .gif"),
+    ] = None,
+    provider: Annotated[
+        str | None, typer.Option("--provider", "-p", help="Provider if using 'q:query' syntax")
+    ] = None,
+    force: Annotated[
+        bool, typer.Option("--force", help="Bypass local disk cache and force re-download")
+    ] = False,
 ):
     """📥 Download a GIF by URL (or search & save first result using 'q:<query>')."""
     from gifboom.downloader import download_gif
 
     if url.startswith("q:"):
         from gifboom.providers.registry import get_provider
+
         query = url[2:].strip()
         result = _run(get_provider(provider).search(query, limit=1))  # type: ignore
         if not result.items:
@@ -158,14 +180,18 @@ def download(
 
 # ─── still ───────────────────────────────────────────────────────────────────
 
+
 @app.command()
 def still(
     source: Annotated[str, typer.Argument(help="Path to local GIF or HTTP URL")],
-    output: Annotated[Optional[Path], typer.Option("--output", "-o", help="Output PNG path")] = None,
-    at: Annotated[str, typer.Option("--at", help="Timestamp to extract (e.g. '1.5' or '00:00:01.5')")] = "0",
+    output: Annotated[Path | None, typer.Option("--output", "-o", help="Output PNG path")] = None,
+    at: Annotated[
+        str, typer.Option("--at", help="Timestamp to extract (e.g. '1.5' or '00:00:01.5')")
+    ] = "0",
 ):
     """🖼️ Extract a single PNG frame from a GIF at a given timestamp."""
     from gifboom.converters import gif_still
+
     out = output or Path(source).with_suffix(".still.png")
     gif_still(Path(source) if not source.startswith("http") else source, out, at=at)
     rprint(f"[green]✓[/] Saved still frame: {out}")
@@ -173,32 +199,49 @@ def still(
 
 # ─── sheet ───────────────────────────────────────────────────────────────────
 
+
 @app.command()
 def sheet(
     source: Annotated[str, typer.Argument(help="Path to local GIF or HTTP URL")],
-    output: Annotated[Optional[Path], typer.Option("--output", "-o", help="Output PNG path")] = None,
-    frames: Annotated[int, typer.Option("--frames", "-n", help="Total number of frames to sample")] = 9,
+    output: Annotated[Path | None, typer.Option("--output", "-o", help="Output PNG path")] = None,
+    frames: Annotated[
+        int, typer.Option("--frames", "-n", help="Total number of frames to sample")
+    ] = 9,
     cols: Annotated[int, typer.Option("--cols", help="Number of columns in grid layout")] = 3,
 ):
     """🗂️ Generate a PNG contact sheet (grid breakdown of GIF frames)."""
     from gifboom.converters import gif_sheet
+
     out = output or Path(source).with_suffix(".sheet.png")
-    gif_sheet(Path(source) if not source.startswith("http") else source, out, frames=frames, cols=cols)
+    gif_sheet(
+        Path(source) if not source.startswith("http") else source, out, frames=frames, cols=cols
+    )
     rprint(f"[green]✓[/] Saved contact sheet: {out}")
 
 
 # ─── convert sub-commands ────────────────────────────────────────────────────
 
+
 @convert_app.command("gif2video")
 def convert_gif2video(
     input: Annotated[Path, typer.Argument(help="Source .gif file path")],
-    output: Annotated[Path, typer.Option("--output", "-o", help="Destination video path (.mp4, .webm, .mov)")],
-    crf: Annotated[int, typer.Option("--crf", help="Video quality/compression (0=lossless, 23=default, 51=worst)")] = 23,
-    fps: Annotated[Optional[int], typer.Option("--fps", help="Target FPS (default keeps source FPS)")] = None,
-    scale: Annotated[Optional[str], typer.Option("--scale", help="Scale filter e.g. '640:-1' (width:height)")] = None,
+    output: Annotated[
+        Path, typer.Option("--output", "-o", help="Destination video path (.mp4, .webm, .mov)")
+    ],
+    crf: Annotated[
+        int,
+        typer.Option("--crf", help="Video quality/compression (0=lossless, 23=default, 51=worst)"),
+    ] = 23,
+    fps: Annotated[
+        int | None, typer.Option("--fps", help="Target FPS (default keeps source FPS)")
+    ] = None,
+    scale: Annotated[
+        str | None, typer.Option("--scale", help="Scale filter e.g. '640:-1' (width:height)")
+    ] = None,
 ):
     """🎬 Convert animated GIF → MP4, WebM, or MOV video."""
     from gifboom.converters import gif_to_video
+
     out = gif_to_video(input, output, crf=crf, fps=fps, scale=scale)
     orig = input.stat().st_size / (1024 * 1024)
     new = out.stat().st_size / (1024 * 1024)
@@ -212,11 +255,17 @@ def convert_video2gif(
     fps: Annotated[int, typer.Option("--fps", help="Target frame rate")] = 15,
     scale: Annotated[str, typer.Option("--scale", help="Scale filter e.g. '480:-1'")] = "480:-1",
     colors: Annotated[int, typer.Option("--colors", help="Palette color depth (2-256)")] = 256,
-    start: Annotated[Optional[str], typer.Option("--start", "-s", help="Start time timestamp e.g. '00:00:02' or '2.0'")] = None,
-    end: Annotated[Optional[str], typer.Option("--end", "-e", help="End time timestamp e.g. '00:00:07' or '7.0'")] = None,
+    start: Annotated[
+        str | None,
+        typer.Option("--start", "-s", help="Start time timestamp e.g. '00:00:02' or '2.0'"),
+    ] = None,
+    end: Annotated[
+        str | None, typer.Option("--end", "-e", help="End time timestamp e.g. '00:00:07' or '7.0'")
+    ] = None,
 ):
     """📽️ Convert video file → high-quality animated GIF (using 2-pass palette)."""
     from gifboom.converters import video_to_gif
+
     out = video_to_gif(input, output, fps=fps, scale=scale, colors=colors, start=start, end=end)
     rprint(f"[green]✓[/] Converted video → GIF: {out}")
 
@@ -224,16 +273,21 @@ def convert_video2gif(
 @convert_app.command("optimize")
 def convert_optimize(
     input: Annotated[Path, typer.Argument(help="Source .gif file path")],
-    output: Annotated[Optional[Path], typer.Option("--output", "-o", help="Destination .gif path")] = None,
-    colors: Annotated[int, typer.Option("--colors", help="Reduced color count (e.g. 64 or 128)")] = 128,
+    output: Annotated[
+        Path | None, typer.Option("--output", "-o", help="Destination .gif path")
+    ] = None,
+    colors: Annotated[
+        int, typer.Option("--colors", help="Reduced color count (e.g. 64 or 128)")
+    ] = 128,
 ):
     """⚡ Re-optimize a GIF to reduce file size (reduces color depth)."""
     from gifboom.converters import gif_optimize
+
     out = output or input.with_stem(input.stem + "_optimized")
     gif_optimize(input, out, colors=colors)
     orig = input.stat().st_size / 1024
     new = out.stat().st_size / 1024
-    rprint(f"[green]✓[/] {orig:.1f}KB → {new:.1f}KB ({(1 - new/orig)*100:.0f}% smaller): {out}")
+    rprint(f"[green]✓[/] {orig:.1f}KB → {new:.1f}KB ({(1 - new / orig) * 100:.0f}% smaller): {out}")
 
 
 @convert_app.command("trim")
@@ -241,10 +295,13 @@ def convert_trim(
     input: Annotated[Path, typer.Argument(help="Source .gif file path")],
     start: Annotated[str, typer.Option("--start", "-s", help="Start timestamp e.g. '0.5'")],
     end: Annotated[str, typer.Option("--end", "-e", help="End timestamp e.g. '3.0'")],
-    output: Annotated[Optional[Path], typer.Option("--output", "-o", help="Destination .gif path")] = None,
+    output: Annotated[
+        Path | None, typer.Option("--output", "-o", help="Destination .gif path")
+    ] = None,
 ):
     """✂️ Trim a GIF to a specific time range."""
     from gifboom.converters import gif_trim
+
     out = output or input.with_stem(input.stem + "_trimmed")
     gif_trim(input, out, start=start, end=end)
     rprint(f"[green]✓[/] Trimmed GIF: {out}")
@@ -253,13 +310,18 @@ def convert_trim(
 @convert_app.command("batch")
 def convert_batch(
     in_dir: Annotated[Path, typer.Argument(help="Directory containing GIF files to convert")],
-    format: Annotated[str, typer.Option("--format", "-f", help="Target format: mp4 | webm | mov")] = "mp4",
-    out_dir: Annotated[Optional[Path], typer.Option("--out-dir", help="Destination output directory")] = None,
+    format: Annotated[
+        str, typer.Option("--format", "-f", help="Target format: mp4 | webm | mov")
+    ] = "mp4",
+    out_dir: Annotated[
+        Path | None, typer.Option("--out-dir", help="Destination output directory")
+    ] = None,
     crf: Annotated[int, typer.Option("--crf", help="Video compression level")] = 23,
-    fps: Annotated[Optional[int], typer.Option("--fps", help="Target FPS")] = None,
+    fps: Annotated[int | None, typer.Option("--fps", help="Target FPS")] = None,
 ):
     """📦 Batch convert all GIFs in a directory into videos."""
     from gifboom.converters import gif_to_video
+
     target_dir = out_dir or in_dir / "converted"
     target_dir.mkdir(parents=True, exist_ok=True)
     gifs = list(in_dir.glob("*.gif"))
@@ -276,10 +338,12 @@ def convert_batch(
 
 # ─── cache sub-commands ───────────────────────────────────────────────────────
 
+
 @cache_app.command("stats")
 def cache_stats():
     """📊 Show disk cache statistics (item count and memory size)."""
     from gifboom.downloader import cache_stats as _stats
+
     s = _stats()
     rprint(f"[bold]Cache Directory:[/] {s['dir']}")
     rprint(f"  Cached Items: {s['items']}")
@@ -290,19 +354,28 @@ def cache_stats():
 def cache_clear():
     """🧹 Clear all downloaded GIFs from the local disk cache."""
     from gifboom.downloader import cache_clear as _clear
+
     _clear()
     rprint("[green]✓[/] Local disk cache cleared.")
 
 
 # ─── keys ────────────────────────────────────────────────────────────────────
 
+
 @app.command("keys")
 def keys(
-    provider: Annotated[Optional[str], typer.Argument(help="Provider name: giphy | tenor | klipy (leave empty to list all)")] = None,
-    open_browser: Annotated[bool, typer.Option("--open/--no-open", "-o", help="Automatically open key portal in web browser")] = True,
+    provider: Annotated[
+        str | None,
+        typer.Argument(help="Provider name: giphy | tenor | klipy (leave empty to list all)"),
+    ] = None,
+    open_browser: Annotated[
+        bool,
+        typer.Option("--open/--no-open", "-o", help="Automatically open key portal in web browser"),
+    ] = True,
 ):
     """🔑 List API key portals or launch developer dashboards in web browser."""
     import webbrowser
+
     from gifboom.providers.registry import get_all_providers_info
 
     info = get_all_providers_info()
@@ -311,13 +384,19 @@ def keys(
     if provider:
         p_name = provider.lower()
         if p_name not in providers_map or not providers_map[p_name]["url"]:
-            rprint(f"[red]Unknown or keyless provider:[/] {provider}. Available options: giphy, tenor, klipy")
+            rprint(
+                f"[red]Unknown or keyless provider:[/] {provider}. Available options: giphy, tenor, klipy"
+            )
             raise typer.Exit(1)
         item = providers_map[p_name]
         rprint(f"[bold cyan]Launching API key portal for {item['name'].upper()}...[/]")
         rprint(f"🔗 Portal URL: [link={item['url']}]{item['url']}[/link]")
         if item["env_var"]:
-            rprint(f"💡 After getting key, set it via: [bold green]gifboom config set {item['env_var']}=your_key[/bold green]")
+            env_var = item["env_var"]
+            rprint(
+                f"💡 After getting key, set it via: "
+                f"[bold green]gifboom config set {env_var}=your_key[/bold green]"
+            )
         if open_browser:
             webbrowser.open(item["url"])
     else:
@@ -330,23 +409,36 @@ def keys(
         for item in info:
             if not item["url"]:
                 continue
-            status = "[bold green]Configured ✓[/bold green]" if item["configured"] else "[bold yellow]Key missing ⚠️[/bold yellow]"
+            status = (
+                "[bold green]Configured ✓[/bold green]"
+                if item["configured"]
+                else "[bold yellow]Key missing ⚠️[/bold yellow]"
+            )
             table.add_row(item["name"], status, item["env_var"], item["url"])
 
         console.print(table)
-        rprint("\n💡 [bold]To open a portal in browser:[/] [cyan]gifboom keys <provider>[/cyan] (e.g. `gifboom keys giphy`)")
-        rprint("💡 [bold]To set your API key:[/] [cyan]gifboom config set GIPHY_API_KEY=your_key[/cyan]\n")
+        rprint(
+            "\n💡 [bold]To open a portal in browser:[/] "
+            "[cyan]gifboom keys <provider>[/cyan] (e.g. `gifboom keys giphy`)"
+        )
+        rprint(
+            "💡 [bold]To set your API key:[/] [cyan]gifboom config set GIPHY_API_KEY=your_key[/cyan]\n"
+        )
 
 
 # ─── config ──────────────────────────────────────────────────────────────────
 
+
 @app.command()
 def config(
     action: Annotated[str, typer.Argument(help="Action: show | set KEY=VALUE")],
-    key_value: Annotated[Optional[str], typer.Argument(help="Setting to configure e.g. GIPHY_API_KEY=xyz")] = None,
+    key_value: Annotated[
+        str | None, typer.Argument(help="Setting to configure e.g. GIPHY_API_KEY=xyz")
+    ] = None,
 ):
     """⚙️ View or update local gifboom settings (~/.gifboom/.env)."""
     from gifboom.config import settings
+
     env_file = Path.home() / ".gifboom" / ".env"
 
     if action == "show":
@@ -360,7 +452,7 @@ def config(
         env_file.parent.mkdir(parents=True, exist_ok=True)
         lines = env_file.read_text().splitlines() if env_file.exists() else []
         key = key_value.split("=")[0]
-        lines = [l for l in lines if not l.startswith(key + "=")]
+        lines = [line for line in lines if not line.startswith(key + "=")]
         lines.append(key_value)
         env_file.write_text("\n".join(lines) + "\n")
         rprint(f"[green]✓[/] Saved {key_value!r} to {env_file}")
@@ -369,6 +461,7 @@ def config(
 
 
 # ─── version ─────────────────────────────────────────────────────────────────
+
 
 @app.command()
 def version():

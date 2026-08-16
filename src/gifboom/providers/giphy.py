@@ -60,7 +60,9 @@ class GiphyProvider(BaseProvider):
 
         items = [self._build_gif(item) for item in data.get("data", [])]
         total = data.get("pagination", {}).get("total_count", len(items))
-        return SearchResult(items=items, total=total, query=query, provider=self.name, offset=offset)
+        return SearchResult(
+            items=items, total=total, query=query, provider=self.name, offset=offset
+        )
 
     async def get_by_id(self, gif_id: str) -> SearchResult:
         async with httpx.AsyncClient(timeout=10) as client:

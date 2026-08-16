@@ -31,9 +31,7 @@ try:
     from mcp.server.stdio import stdio_server
     from mcp.types import TextContent, Tool
 except ImportError as e:
-    raise ImportError(
-        "MCP extra not installed. Run: pip install 'gifboom[mcp]'"
-    ) from e
+    raise ImportError("MCP extra not installed. Run: pip install 'gifboom[mcp]'") from e
 
 # ─── MCP Server ──────────────────────────────────────────────────────────────
 
@@ -57,7 +55,11 @@ TOOLS = [
                     "enum": ["giphy", "tenor", "klipy", "local"],
                     "description": "GIF provider. Defaults to configured default.",
                 },
-                "limit": {"type": "integer", "default": 5, "description": "Number of results (1-25)"},
+                "limit": {
+                    "type": "integer",
+                    "default": 5,
+                    "description": "Number of results (1-25)",
+                },
                 "offset": {"type": "integer", "default": 0, "description": "Pagination offset"},
                 "rating": {"type": "string", "enum": ["g", "pg", "pg-13", "r"], "default": "g"},
             },
@@ -86,8 +88,15 @@ TOOLS = [
             "type": "object",
             "properties": {
                 "input_path": {"type": "string", "description": "Path to input .gif file"},
-                "output_path": {"type": "string", "description": "Path for output video file (.mp4, .webm, .mov)"},
-                "crf": {"type": "integer", "default": 23, "description": "Quality (0=lossless, 51=worst)"},
+                "output_path": {
+                    "type": "string",
+                    "description": "Path for output video file (.mp4, .webm, .mov)",
+                },
+                "crf": {
+                    "type": "integer",
+                    "default": 23,
+                    "description": "Quality (0=lossless, 51=worst)",
+                },
                 "fps": {"type": "integer", "description": "Target FPS (optional)"},
                 "scale": {"type": "string", "description": "Scale e.g. '640:-1' (optional)"},
             },
@@ -107,7 +116,11 @@ TOOLS = [
                 "output_path": {"type": "string", "description": "Path for output .gif file"},
                 "fps": {"type": "integer", "default": 15, "description": "Frame rate"},
                 "scale": {"type": "string", "default": "480:-1", "description": "Scale filter"},
-                "colors": {"type": "integer", "default": 256, "description": "Palette size (2-256)"},
+                "colors": {
+                    "type": "integer",
+                    "default": 256,
+                    "description": "Palette size (2-256)",
+                },
                 "start": {"type": "string", "description": "Start time e.g. '1.5' or '00:00:01.5'"},
                 "end": {"type": "string", "description": "End time"},
             },
@@ -122,7 +135,11 @@ TOOLS = [
             "properties": {
                 "source": {"type": "string", "description": "GIF path or URL"},
                 "output_path": {"type": "string", "description": "Output .png path"},
-                "at": {"type": "string", "default": "0", "description": "Timestamp in seconds e.g. '1.5'"},
+                "at": {
+                    "type": "string",
+                    "default": "0",
+                    "description": "Timestamp in seconds e.g. '1.5'",
+                },
             },
             "required": ["source", "output_path"],
         },
@@ -135,7 +152,11 @@ TOOLS = [
             "properties": {
                 "source": {"type": "string", "description": "GIF path or URL"},
                 "output_path": {"type": "string", "description": "Output .png path"},
-                "frames": {"type": "integer", "default": 9, "description": "Total frames to sample"},
+                "frames": {
+                    "type": "integer",
+                    "default": 9,
+                    "description": "Total frames to sample",
+                },
                 "cols": {"type": "integer", "default": 3, "description": "Grid columns"},
             },
             "required": ["source", "output_path"],
@@ -163,7 +184,11 @@ TOOLS = [
             "properties": {
                 "input_path": {"type": "string", "description": "Source .gif path"},
                 "output_path": {"type": "string", "description": "Output .gif path"},
-                "colors": {"type": "integer", "default": 128, "description": "Palette size (2-256)"},
+                "colors": {
+                    "type": "integer",
+                    "default": 128,
+                    "description": "Palette size (2-256)",
+                },
             },
             "required": ["input_path", "output_path"],
         },
@@ -193,6 +218,7 @@ TOOLS = [
 
 # ─── Tool handlers ────────────────────────────────────────────────────────────
 
+
 @server.list_tools()
 async def list_tools() -> list[Tool]:
     return TOOLS
@@ -210,6 +236,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
 async def _dispatch(name: str, args: dict) -> Any:
     if name == "search_gifs":
         from gifboom.providers.registry import get_provider
+
         provider = get_provider(args.get("provider"))  # type: ignore
         result = await provider.search(
             args["query"],
@@ -226,12 +253,14 @@ async def _dispatch(name: str, args: dict) -> Any:
 
     elif name == "download_gif":
         from gifboom.downloader import download_gif
+
         out_path = Path(args["filename"]) if args.get("filename") else None
         path = await download_gif(args["url"], output_path=out_path)
         return {"path": str(path), "size_bytes": path.stat().st_size}
 
     elif name == "gif_to_video":
         from gifboom.converters import gif_to_video
+
         out = gif_to_video(
             Path(args["input_path"]),
             Path(args["output_path"]),
@@ -243,6 +272,7 @@ async def _dispatch(name: str, args: dict) -> Any:
 
     elif name == "video_to_gif":
         from gifboom.converters import video_to_gif
+
         out = video_to_gif(
             Path(args["input_path"]),
             Path(args["output_path"]),
@@ -256,41 +286,57 @@ async def _dispatch(name: str, args: dict) -> Any:
 
     elif name == "gif_still":
         from gifboom.converters import gif_still
+
         out = gif_still(args["source"], Path(args["output_path"]), at=args.get("at", "0"))
         return {"path": str(out)}
 
     elif name == "gif_sheet":
         from gifboom.converters import gif_sheet
+
         out = gif_sheet(
-            args["source"], Path(args["output_path"]),
-            frames=args.get("frames", 9), cols=args.get("cols", 3),
+            args["source"],
+            Path(args["output_path"]),
+            frames=args.get("frames", 9),
+            cols=args.get("cols", 3),
         )
         return {"path": str(out)}
 
     elif name == "gif_trim":
         from gifboom.converters import gif_trim
+
         out = gif_trim(
-            Path(args["input_path"]), Path(args["output_path"]),
-            start=args["start"], end=args["end"],
+            Path(args["input_path"]),
+            Path(args["output_path"]),
+            start=args["start"],
+            end=args["end"],
         )
         return {"path": str(out)}
 
     elif name == "gif_optimize":
         from gifboom.converters import gif_optimize
+
         out = gif_optimize(
-            Path(args["input_path"]), Path(args["output_path"]),
+            Path(args["input_path"]),
+            Path(args["output_path"]),
             colors=args.get("colors", 128),
         )
         orig = Path(args["input_path"]).stat().st_size
         new = out.stat().st_size
-        return {"path": str(out), "original_bytes": orig, "output_bytes": new, "saved_pct": round((1 - new/orig)*100)}
+        return {
+            "path": str(out),
+            "original_bytes": orig,
+            "output_bytes": new,
+            "saved_pct": round((1 - new / orig) * 100),
+        }
 
     elif name == "list_providers":
         from gifboom.providers.registry import get_all_providers_info
+
         return {"providers": get_all_providers_info()}
 
     elif name == "open_key_page":
         from gifboom.providers.registry import get_all_providers_info
+
         info = get_all_providers_info()
         p_name = args["provider"].lower()
         for item in info:
@@ -308,6 +354,7 @@ async def _dispatch(name: str, args: dict) -> Any:
 
 
 # ─── Entry point ──────────────────────────────────────────────────────────────
+
 
 def main():
     asyncio.run(stdio_server(server))

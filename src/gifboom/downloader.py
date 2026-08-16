@@ -13,7 +13,9 @@ from gifboom.config import settings
 
 def _cache() -> diskcache.Cache:
     settings.cache_dir.mkdir(parents=True, exist_ok=True)
-    return diskcache.Cache(str(settings.cache_dir), size_limit=int(settings.cache_size_gb * 1024**3))
+    return diskcache.Cache(
+        str(settings.cache_dir), size_limit=int(settings.cache_size_gb * 1024**3)
+    )
 
 
 def _url_key(url: str) -> str:
@@ -44,13 +46,15 @@ async def download_gif(url: str, output_path: Path | None = None, force: bool = 
         filename = url.split("/")[-1].split("?")[0] or f"{key[:12]}.gif"
         output_path = settings.default_output_dir / filename
 
-    async with httpx.AsyncClient(timeout=60, follow_redirects=True) as client:
-        async with client.stream("GET", url) as resp:
-            resp.raise_for_status()
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-            with output_path.open("wb") as f:
-                async for chunk in resp.aiter_bytes(chunk_size=65536):
-                    f.write(chunk)
+    async with (
+        httpx.AsyncClient(timeout=60, follow_redirects=True) as client,
+        client.stream("GET", url) as resp,
+    ):
+        resp.raise_for_status()
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with output_path.open("wb") as f:
+            async for chunk in resp.aiter_bytes(chunk_size=65536):
+                f.write(chunk)
 
     cache[key] = str(output_path)
     return output_path

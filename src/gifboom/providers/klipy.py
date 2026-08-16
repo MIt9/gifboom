@@ -51,7 +51,13 @@ class KlipyProvider(BaseProvider):
 
         results = data.get("data", data.get("results", []))
         items = [self._build_gif(r) for r in results]
-        return SearchResult(items=items, total=data.get("total", len(items)), query=query, provider=self.name, offset=offset)
+        return SearchResult(
+            items=items,
+            total=data.get("total", len(items)),
+            query=query,
+            provider=self.name,
+            offset=offset,
+        )
 
     async def get_by_id(self, gif_id: str) -> SearchResult:
         async with httpx.AsyncClient(timeout=10) as client:

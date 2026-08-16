@@ -26,4 +26,3 @@ class BaseProvider(ABC):
     def is_configured(self) -> bool:
         """Return True if the required API key is set."""
         return True
-
