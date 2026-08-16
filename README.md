@@ -11,6 +11,12 @@
 
 <br/>
 
+```bash
+pip install gifboom
+```
+
+<br/>
+
 ![gifboom hero](https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif)
 
 *“Why spend 20 minutes finding and converting a GIF when `gifboom` can do it in 2 seconds?”*
