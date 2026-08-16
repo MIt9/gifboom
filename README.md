@@ -1,154 +1,180 @@
-# gifboom 🎬
+<div align="center">
 
-> Open-source GIF search, download, conversion, and processing tool — CLI & AI-ready
+# 🎬 gifboom
 
-[![PyPI](https://img.shields.io/pypi/v/gifboom)](https://pypi.org/project/gifboom/)
-[![Python](https://img.shields.io/pypi/pyversions/gifboom)](https://pypi.org/project/gifboom/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![CI](https://github.com/gifboom/gifboom/actions/workflows/ci.yml/badge.svg)](https://github.com/gifboom/gifboom/actions)
+### *The ultimate open-source GIF engine for Humans & AI Agents*
 
-**gifboom** is a feature-complete open-source alternative to [gifgrep](https://github.com/steipete/gifgrep), extended with video conversion capabilities, API key portal helpers, and native AI integration (MCP & Claude Skill).
+[![PyPI Version](https://img.shields.io/pypi/v/gifboom?style=for-the-badge&color=ff4757)](https://pypi.org/project/gifboom/)
+[![Python Version](https://img.shields.io/pypi/pyversions/gifboom?style=for-the-badge&color=2ed573)](https://pypi.org/project/gifboom/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.style=for-the-badge&style=for-the-badge&color=70a1ff)](LICENSE)
+[![CI Status](https://img.shields.io/github/actions/workflow/status/gifboom/gifboom/ci.yml?branch=main&style=for-the-badge)](https://github.com/gifboom/gifboom/actions)
 
-## Features
+<br/>
 
-| Feature | Description |
-|---|---|
-| 🔍 **Search** | GIPHY, Tenor, KLIPY, and local filesystem |
-| 🔑 **Keys Portal** | Open developer dashboards to get API keys (`gifboom keys`) |
-| 📥 **Download** | Download GIFs by URL or query with smart disk caching |
-| 🖼️ **Still** | Extract a single PNG frame at any timestamp |
-| 🗂️ **Sheet** | PNG contact sheet (sampled frame grid) |
-| 🎬 **GIF → Video** | Convert GIF to MP4 / WebM / MOV |
-| 📽️ **Video → GIF** | High-quality two-pass palette conversion |
-| ✂️ **Trim** | Clip GIF to a specific time range |
-| ⚡ **Optimize** | Reduce GIF color palette and file size |
-| 📦 **Batch** | Mass-convert directories of GIFs |
-| 🤖 **MCP Server** | Native Model Context Protocol server (9 AI tools) |
-| 📋 **Claude Skill** | Standard `SKILL.md` for Claude, Cursor, and Antigravity |
+![gifboom hero](https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif)
+
+*“Why spend 20 minutes finding and converting a GIF when `gifboom` can do it in 2 seconds?”*
+
+</div>
 
 ---
 
-## Installation
+## 🌟 Why gifboom?
 
-```bash
-pip install gifboom
-brew install ffmpeg   # required for video conversion
-```
+We loved tools like [gifgrep](https://github.com/steipete/gifgrep) for searching GIFs right from the terminal. But we kept asking:
+
+> *“Where is the MP4 conversion? Where is video-to-GIF? What about trimming? And why can't my Claude / Cursor AI agent search and send GIFs for me??”* 🤔
+
+So we built **gifboom** — an open-source, lightning-fast Python CLI + MCP Server that does it all:
+
+* 🔍 **Multi-Provider Search**: GIPHY, Tenor, KLIPY, and local folders in one command.
+* 🎬 **GIF ↔ Video Conversion**: Turn heavy 30MB GIFs into silky 2MB MP4s (or vice versa).
+* 🖼️ **Stills & Contact Sheets**: Grab single PNG frames or full 3×3 video grids.
+* ✂️ **Trim & Shrink**: Slice out the funny 2 seconds and optimize color palettes.
+* 🤖 **AI-Native (MCP & Claude Skill)**: Give your AI assistant the power to search, download, and convert media on command!
 
 ---
 
-## Quick Start
+## 🍿 Feature Tour
 
-### 1. Get & Set API Keys
+### 1. 🔍 Instant GIF Search
+Find the perfect reaction without leaving your terminal (or let your script get JSON results).
+
+![Cat Searching](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExODp1dndxZXFqazBwZnd2dHc4cjR1NjlzbjBqa3J0dXp6emtyOXFiYjAmZXA9djFfaW50ZXJuYWxfZ2lmX2J5X2lkJmN0PWc/3oKIPnAiaMCws8nOsE/giphy.gif)
+
 ```bash
-# View available providers and open developer portals in your browser:
-gifboom keys              # list all portals and statuses
-gifboom keys giphy        # open GIPHY Developer Dashboard in browser
-gifboom keys tenor        # open Tenor / Google Cloud Console in browser
+# Pretty table format
+gifboom search "excited reaction" --format table
 
-# Set API key:
-gifboom config set GIPHY_API_KEY=your_key_here
-```
-
-### 2. Search & Download
-```bash
-# Search GIFs (format: plain, json, tsv, markdown, table)
-gifboom search "happy cat" --format table
-
-# Download first search result or by direct URL
-gifboom download "q:happy cat" --output ~/Downloads/cat.gif
-```
-
-### 3. Media Conversion & Processing
-```bash
-# Extract a frame at 1.5s
-gifboom still cat.gif --at 1.5 --output frame.png
-
-# Generate a 3x3 contact sheet grid
-gifboom sheet cat.gif --frames 9 --cols 3 --output grid.png
-
-# GIF → MP4 (smaller, web-friendly)
-gifboom convert gif2video cat.gif --output cat.mp4
-
-# Video → GIF (high-quality palette)
-gifboom convert video2gif video.mp4 --output clip.gif --start 2.0 --end 7.0
-
-# Optimize GIF file size
-gifboom convert optimize cat.gif --colors 128 --output cat_small.gif
-
-# Batch convert an entire folder
-gifboom convert batch ./gifs/ --format mp4 --out-dir ./videos/
+# Pure JSON for scripts & AI
+gifboom search "mind blown" --format json --limit 5
 ```
 
 ---
 
-## AI Agent Integration
+### 2. 🎬 GIF ↔ Video Alchemy
+Convert giant animated GIFs into lightweight MP4/WebM videos for Twitter, Discord, or web apps. Or turn video clips into crisp GIFs!
 
-### MCP Server (Claude Desktop, Cursor, Antigravity, etc.)
+![Transformation Magic](https://media.giphy.com/media/12NUbkX6p4xOO4/giphy.gif)
 
-Install MCP dependencies:
 ```bash
+# Shrink 40MB GIF → 2MB MP4 (huge bandwidth saver!)
+gifboom convert gif2video cat.gif -o cat.mp4
+
+# Convert video clip to high-quality GIF
+gifboom convert video2gif movie.mp4 -o clip.gif --start 00:01:20 --end 00:01:25
+```
+
+---
+
+### 3. 🖼️ Frame Extractor & Contact Sheets
+Need a quick PNG snapshot or a grid breakdown of every keyframe?
+
+![Freeze Frame](https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif)
+
+```bash
+# Extract single frame at 1.5 seconds
+gifboom still dance.gif --at 1.5 -o frame.png
+
+# Generate a 3×3 grid breakdown of 9 frames
+gifboom sheet dance.gif --frames 9 --cols 3 -o grid.png
+```
+
+---
+
+### 4. 🤖 AI Superpowers (MCP Server & Claude Skill)
+Teach your AI agents (Claude Desktop, Cursor, Antigravity, LobeHub) how to handle GIFs autonomously!
+
+![Robot AI](https://media.giphy.com/media/26n6WywJyh39n1pBu/giphy.gif)
+
+```bash
+# Install with MCP support
 pip install 'gifboom[mcp]'
 ```
 
-Add to your MCP configuration (e.g. `~/.config/claude/claude_desktop_config.json`):
+Your AI can now run tools like `search_gifs`, `download_gif`, `gif_to_video`, `open_key_page`, and more.
 
-```json
-{
-  "mcpServers": {
-    "gifboom": {
-      "command": "gifboom-mcp",
-      "env": {
-        "GIPHY_API_KEY": "your_key",
-        "TENOR_API_KEY": "your_key"
-      }
-    }
-  }
-}
-```
-
-**Exposed MCP Tools:** `search_gifs`, `download_gif`, `gif_to_video`, `video_to_gif`, `gif_still`, `gif_sheet`, `gif_trim`, `gif_optimize`, `list_providers`, `open_key_page`.
+> 📋 **Claude Skill file included!** Just drop [`skills/gifboom/SKILL.md`](skills/gifboom/SKILL.md) into your `.agents/skills/gifboom/` directory.
 
 ---
 
-### Claude Skill Standard
+## 🚀 Quick Start
 
-The skill definition is available at [`skills/gifboom/SKILL.md`](skills/gifboom/SKILL.md).
-
-To add it to your agent workspace:
+### Step 1: Install
 ```bash
-mkdir -p .agents/skills/gifboom
-cp skills/gifboom/SKILL.md .agents/skills/gifboom/
+pip install gifboom
+brew install ffmpeg   # Required for video magic ✨
+```
+
+### Step 2: Get Free API Keys in 1-Click 🔑
+Don't have API keys yet? No problem! `gifboom` will launch the developer portals for you:
+
+```bash
+# Open developer portals directly in your web browser:
+gifboom keys giphy    # Opens GIPHY Developer Dashboard
+gifboom keys tenor    # Opens Tenor / Google Cloud Console
+
+# Save your key locally:
+gifboom config set GIPHY_API_KEY=your_secret_key_here
+```
+
+### Step 3: Boom! 💥
+```bash
+# Download the top "happy cat" GIF directly
+gifboom download "q:happy cat" -o ~/Downloads/happy_cat.gif
+
+# Convert to MP4
+gifboom convert gif2video ~/Downloads/happy_cat.gif -o ~/Downloads/happy_cat.mp4
+
+# Batch convert a whole folder of GIFs
+gifboom convert batch ./my_gifs/ --format mp4 --out-dir ./my_videos/
 ```
 
 ---
 
-## Available Providers
+## ⚡ Cheat Sheet & Recipes
 
-| Provider | Free Tier | API Key Env Var | Get Key Command |
+| Task | Command |
+|---|---|
+| **Quick search & copy URL** | `gifboom search "party parrot"` |
+| **Download specific URL** | `gifboom download https://media.giphy.com/... -o meme.gif` |
+| **Discord Emoji Optimizer** | `gifboom convert optimize emote.gif --colors 64 -o emote_small.gif` |
+| **Trim awkward start/end** | `gifboom convert trim laugh.gif --start 0.5 --end 2.5 -o clean_laugh.gif` |
+| **WebM for websites** | `gifboom convert gif2video hero.gif -o hero.webm --crf 28` |
+| **Check cache size** | `gifboom cache stats` |
+
+---
+
+## 🌐 Provider Support
+
+| Provider | Free Tier | Setup Command | Env Variable |
 |---|---|---|---|
-| **GIPHY** | 100 req/hr (dev key) | `GIPHY_API_KEY` | `gifboom keys giphy` |
-| **Tenor** (Google) | Generous quota | `TENOR_API_KEY` | `gifboom keys tenor` |
-| **KLIPY** | Beta (free) | `KLIPY_API_KEY` | `gifboom keys klipy` |
-| **local** | No key needed | — | — |
+| **GIPHY** | 100 req/hr (dev key) | `gifboom keys giphy` | `GIPHY_API_KEY` |
+| **Tenor** | Generous (Google Cloud) | `gifboom keys tenor` | `TENOR_API_KEY` |
+| **KLIPY** | Free beta | `gifboom keys klipy` | `KLIPY_API_KEY` |
+| **Local** | Unlimited 💾 | *No key needed* | — |
 
 ---
 
-## Development
+## 🤝 Contributing
+
+We love pull requests! Whether it's adding new GIF providers, improving conversion speed, or writing documentation:
 
 ```bash
-git clone https://github.com/gifboom/gifboom
+git clone https://github.com/gifboom/gifboom.git
 cd gifboom
 python3.11 -m pip install -e ".[dev]"
 pytest tests/ -v
 ```
 
+Check out our [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
 ---
 
-## License
+<div align="center">
 
-[MIT](LICENSE) © GifBoom Contributors
+Made with ❤️ and lots of 🍿 by the Open Source Community.
 
-## Contributing
+[License: MIT](LICENSE) • [Report Issue](https://github.com/gifboom/gifboom/issues) • [Star on GitHub ⭐](https://github.com/gifboom/gifboom)
 
-Contributions are welcome! Check out [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+</div>
