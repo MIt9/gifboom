@@ -82,19 +82,82 @@ gifboom sheet dance.gif --frames 9 --cols 3 -o grid.png
 
 ---
 
-### 4. 🤖 AI Superpowers (MCP Server & Claude Skill)
-Teach your AI agents (Claude Desktop, Cursor, Antigravity, LobeHub) how to handle GIFs autonomously!
+### 4. 🤖 AI Integration — Two Flows
 
-![Robot AI](https://media.giphy.com/media/26n6WywJyh39n1pBu/giphy.gif)
+gifboom supports two complementary ways to give AI agents GIF superpowers:
 
+---
+
+#### Flow A — CLI + Agent Skill *(shell-based)*
+
+Best for: **Antigravity, Cursor, Windsurf, Claude Code** — any agent with terminal access.
+
+```
+AI Agent
+   │
+   ├─ reads skills/gifboom/SKILL.md   ← knows every command & flag
+   │
+   └─ runs gifboom CLI via shell      ← gifboom search / convert / download …
+```
+
+**Setup (30 seconds):**
 ```bash
-# Install with MCP support
+pip install gifboom
+
+# Drop the skill into your agent's skills folder:
+cp -r skills/gifboom ~/.agents/skills/gifboom
+# or for Antigravity:
+cp -r skills/gifboom ~/.gemini/config/skills/gifboom
+```
+
+The agent reads [`skills/gifboom/SKILL.md`](skills/gifboom/SKILL.md) and instantly knows how to search, download, convert, trim, and optimize GIFs using shell commands.
+
+---
+
+#### Flow B — MCP Server *(native tool calls)*
+
+Best for: **Claude Desktop, LobeChat, LibreChat** — clients without shell access.
+
+```
+AI Agent (Claude Desktop / LobeChat / …)
+   │
+   └─ calls MCP tools directly        ← search_gifs() / download_gif() / gif_to_video() …
+         │
+         └─ gifboom MCP server        ← no shell needed, returns structured JSON
+```
+
+**Setup:**
+```bash
 pip install 'gifboom[mcp]'
 ```
 
-Your AI can now run tools like `search_gifs`, `download_gif`, `gif_to_video`, `open_key_page`, and more.
+Add to your `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "gifboom": {
+      "command": "gifboom",
+      "args": ["mcp"]
+    }
+  }
+}
+```
 
-> 📋 **Claude Skill file included!** Just drop [`skills/gifboom/SKILL.md`](skills/gifboom/SKILL.md) into your `.agents/skills/gifboom/` directory.
+Available MCP tools: `search_gifs`, `download_gif`, `gif_to_video`, `video_to_gif`, `extract_still`, `optimize_gif`, `open_key_page`.
+
+---
+
+#### Which flow should I use?
+
+| | Flow A — CLI + Skill | Flow B — MCP |
+|---|---|---|
+| **Requires shell** | ✅ yes | ❌ no |
+| **Claude Desktop** | ❌ | ✅ |
+| **Cursor / Antigravity** | ✅ | ✅ |
+| **Structured JSON output** | parse from stdout | native |
+| **Extra install** | none | `gifboom[mcp]` |
+
+> 💡 Both flows can be used simultaneously — install once, integrate both ways.
 
 ---
 
