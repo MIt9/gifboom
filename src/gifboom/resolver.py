@@ -8,19 +8,21 @@ import httpx
 
 
 def resolve_media_url(url: str) -> str:
-    """Resolve a web page URL (e.g. GIPHY/Tenor page or shortlink) to a direct media URL.
+    """Resolve a web page URL or messy tracking URL to a clean direct media URL.
 
     Args:
-        url: Web URL or direct media URL.
+        url: Web URL, tracking URL, or direct media URL.
 
     Returns:
-        Direct URL pointing to .gif, .mp4, or other binary media.
+        Direct clean URL pointing to .gif, .mp4, or other binary media.
     """
-    # 1. GIPHY web page URL: https://giphy.com/gifs/funny-cat-3oKIPnAiaMCws8nOsE
-    giphy_match = re.search(r"giphy\.com/gifs/(?:[a-zA-Z0-9-]+-)?([a-zA-Z0-9]{10,25})(?:/|\?|$)", url)
+    # 1. GIPHY web page or tracking URL clean-up:
+    # e.g. https://giphy.com/gifs/happy-cat-3oKIPnAiaMCws8nOsE
+    # or https://media0.giphy.com/media/v1.Y2lkPT.../OK27wINdQS5YQ/giphy.gif
+    giphy_match = re.search(r"giphy\.com/(?:gifs|media)/(?:v1\.[^/]+/)?(?:[a-zA-Z0-9-]+-)?([a-zA-Z0-9]{10,25})", url)
     if giphy_match:
         gif_id = giphy_match.group(1)
-        return f"https://media.giphy.com/media/{gif_id}/giphy.gif"
+        return f"https://i.giphy.com/{gif_id}.gif"
 
     # 2. If it's already a direct media file extension, return as-is
     clean_url = url.split("?")[0].lower()

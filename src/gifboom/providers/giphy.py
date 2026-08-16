@@ -22,11 +22,14 @@ class GiphyProvider(BaseProvider):
         images = item.get("images", {})
         original = images.get("original", {})
         preview = images.get("fixed_width_small", images.get("preview_gif", {}))
+        gif_id = item["id"]
+        # Clean canonical URL instead of long tracking token URL
+        clean_url = f"https://i.giphy.com/{gif_id}.gif" if gif_id else original.get("url", "")
         return GifResult(
-            id=item["id"],
+            id=gif_id,
             title=item.get("title", ""),
-            url=original.get("url", ""),
-            preview_url=preview.get("url", original.get("url", "")),
+            url=clean_url,
+            preview_url=preview.get("url", clean_url),
             width=int(original.get("width", 0)),
             height=int(original.get("height", 0)),
             size_bytes=int(original.get("size", 0)),
