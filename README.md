@@ -7,7 +7,7 @@
 [![PyPI Version](https://img.shields.io/pypi/v/gifboom?style=for-the-badge&color=ff4757)](https://pypi.org/project/gifboom/)
 [![Python Version](https://img.shields.io/pypi/pyversions/gifboom?style=for-the-badge&color=2ed573)](https://pypi.org/project/gifboom/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.style=for-the-badge&style=for-the-badge&color=70a1ff)](LICENSE)
-[![CI Status](https://img.shields.io/github/actions/workflow/status/gifboom/gifboom/ci.yml?branch=main&style=for-the-badge)](https://github.com/gifboom/gifboom/actions)
+[![CI Status](https://img.shields.io/github/actions/workflow/status/MIt9/gifboom/ci.yml?branch=main&style=for-the-badge)](https://github.com/MIt9/gifboom/actions)
 
 <br/>
 
@@ -161,7 +161,7 @@ gifboom convert batch ./my_gifs/ --format mp4 --out-dir ./my_videos/
 We love pull requests! Whether it's adding new GIF providers, improving conversion speed, or writing documentation:
 
 ```bash
-git clone https://github.com/gifboom/gifboom.git
+git clone https://github.com/MIt9/gifboom.git
 cd gifboom
 python3.11 -m pip install -e ".[dev]"
 pytest tests/ -v
@@ -175,6 +175,6 @@ Check out our [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 Made with ❤️ and lots of 🍿 by the Open Source Community.
 
-[License: MIT](LICENSE) • [Report Issue](https://github.com/gifboom/gifboom/issues) • [Star on GitHub ⭐](https://github.com/gifboom/gifboom)
+[License: MIT](LICENSE) • [Report Issue](https://github.com/MIt9/gifboom/issues) • [Star on GitHub ⭐](https://github.com/MIt9/gifboom)
 
 </div>

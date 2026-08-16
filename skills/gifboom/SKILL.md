@@ -224,5 +224,5 @@ You succeed when:
 ---
 
 **Installation**: `pip install gifboom && brew install ffmpeg`
-**Source**: https://github.com/gifboom/gifboom
+**Source**: https://github.com/MIt9/gifboom
 **License**: MIT
