@@ -52,10 +52,9 @@ dev = [
 gifboom = "gifboom.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/gifboom/gifboom"
-Repository = "https://github.com/gifboom/gifboom"
-Documentation = "https://gifboom.dev"
-"Bug Tracker" = "https://github.com/gifboom/gifboom/issues"
+Homepage = "https://github.com/MIt9/gifboom"
+Repository = "https://github.com/MIt9/gifboom"
+"Bug Tracker" = "https://github.com/MIt9/gifboom/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/gifboom"]
