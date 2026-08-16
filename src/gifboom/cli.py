@@ -124,7 +124,23 @@ def search(
         typer.Option("--format", "-f", help="Output format: plain | json | tsv | markdown | table"),
     ] = "plain",
 ):
-    """🔍 Search GIFs across GIPHY, Tenor, KLIPY, or local files."""
+    """
+    🔍 Search GIFs across GIPHY, Tenor, KLIPY, or local files.
+
+    Results are printed as plain URLs by default. Use --format to change output.
+
+    Examples:
+
+      gifboom search "happy cat"
+
+      gifboom search "mind blown" --format json --limit 5
+
+      gifboom search "fireworks" --provider tenor --limit 10
+
+      gifboom search "birthday" --provider local
+
+      gifboom search "dance" --format table --rating pg
+    """
     from gifboom.providers.registry import get_provider
 
     p = get_provider(provider)  # type: ignore[arg-type]
@@ -160,7 +176,22 @@ def download(
         bool, typer.Option("--force", help="Bypass local disk cache and force re-download")
     ] = False,
 ):
-    """📥 Download a GIF by URL (or search & save first result using 'q:<query>')."""
+    """
+    📥 Download a GIF by URL or search & auto-save the top result.
+
+    Pass a direct URL to download it, or use the 'q:<query>' syntax
+    to search and download the first matching result automatically.
+
+    Examples:
+
+      gifboom download https://media.giphy.com/media/xyz/giphy.gif
+
+      gifboom download https://media.giphy.com/media/xyz/giphy.gif -o ~/Desktop/cat.gif
+
+      gifboom download "q:happy cat" -o ~/Downloads/cat.gif
+
+      gifboom download "q:mind blown" --provider tenor --force
+    """
     from gifboom.downloader import download_gif
 
     if url.startswith("q:"):
@@ -189,7 +220,20 @@ def still(
         str, typer.Option("--at", help="Timestamp to extract (e.g. '1.5' or '00:00:01.5')")
     ] = "0",
 ):
-    """🖼️ Extract a single PNG frame from a GIF at a given timestamp."""
+    """
+    🖼️ Extract a single PNG frame from a GIF at a given timestamp.
+
+    Useful for creating preview thumbnails or inspecting a specific moment.
+    Supports both local files and HTTP URLs.
+
+    Examples:
+
+      gifboom still cat.gif
+
+      gifboom still cat.gif --at 1.5 -o frame.png
+
+      gifboom still https://media.giphy.com/media/xyz/giphy.gif --at 2.0 -o preview.png
+    """
     from gifboom.converters import gif_still
 
     out = output or Path(source).with_suffix(".still.png")
@@ -209,7 +253,20 @@ def sheet(
     ] = 9,
     cols: Annotated[int, typer.Option("--cols", help="Number of columns in grid layout")] = 3,
 ):
-    """🗂️ Generate a PNG contact sheet (grid breakdown of GIF frames)."""
+    """
+    🗂️ Generate a PNG contact sheet — a grid of frames sampled across the GIF.
+
+    Great for previewing what a GIF looks like without playing it.
+    By default creates a 3×3 grid of 9 evenly-spaced frames.
+
+    Examples:
+
+      gifboom sheet cat.gif
+
+      gifboom sheet cat.gif --frames 9 --cols 3 -o preview.png
+
+      gifboom sheet cat.gif --frames 6 --cols 2 -o grid.png
+    """
     from gifboom.converters import gif_sheet
 
     out = output or Path(source).with_suffix(".sheet.png")
@@ -239,7 +296,22 @@ def convert_gif2video(
         str | None, typer.Option("--scale", help="Scale filter e.g. '640:-1' (width:height)")
     ] = None,
 ):
-    """🎬 Convert animated GIF → MP4, WebM, or MOV video."""
+    """
+    🎬 Convert animated GIF → MP4, WebM, or MOV video.
+
+    Videos are 5–20× smaller than GIFs and play smoother on social media,
+    Discord, and websites. Output format is inferred from the file extension.
+
+    Examples:
+
+      gifboom convert gif2video cat.gif -o cat.mp4
+
+      gifboom convert gif2video cat.gif -o cat.webm
+
+      gifboom convert gif2video cat.gif -o cat.mp4 --crf 18
+
+      gifboom convert gif2video cat.gif -o cat.mp4 --fps 30 --scale 1280:-1
+    """
     from gifboom.converters import gif_to_video
 
     out = gif_to_video(input, output, crf=crf, fps=fps, scale=scale)
@@ -263,7 +335,22 @@ def convert_video2gif(
         str | None, typer.Option("--end", "-e", help="End time timestamp e.g. '00:00:07' or '7.0'")
     ] = None,
 ):
-    """📽️ Convert video file → high-quality animated GIF (using 2-pass palette)."""
+    """
+    📽️ Convert video file → high-quality animated GIF (2-pass palette generation).
+
+    Uses a two-pass ffmpeg approach for best color quality. Clip a specific
+    time range using --start and --end.
+
+    Examples:
+
+      gifboom convert video2gif clip.mp4 -o clip.gif
+
+      gifboom convert video2gif clip.mp4 -o clip.gif --start 5 --end 10
+
+      gifboom convert video2gif clip.mp4 -o clip.gif --fps 20 --scale 640:-1 --colors 128
+
+      gifboom convert video2gif clip.mp4 -o clip.gif --start 00:01:20 --end 00:01:25
+    """
     from gifboom.converters import video_to_gif
 
     out = video_to_gif(input, output, fps=fps, scale=scale, colors=colors, start=start, end=end)
@@ -280,7 +367,20 @@ def convert_optimize(
         int, typer.Option("--colors", help="Reduced color count (e.g. 64 or 128)")
     ] = 128,
 ):
-    """⚡ Re-optimize a GIF to reduce file size (reduces color depth)."""
+    """
+    ⚡ Reduce GIF file size by lowering color depth (palette quantization).
+
+    Lower --colors = smaller file, fewer colors. Good range is 64–128.
+    For Discord emoji the sweet spot is usually --colors 64.
+
+    Examples:
+
+      gifboom convert optimize cat.gif -o cat_small.gif
+
+      gifboom convert optimize cat.gif -o cat_small.gif --colors 64
+
+      gifboom convert optimize emote.gif -o emote_small.gif --colors 32
+    """
     from gifboom.converters import gif_optimize
 
     out = output or input.with_stem(input.stem + "_optimized")
