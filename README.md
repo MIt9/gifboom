@@ -98,13 +98,40 @@ Your AI can now run tools like `search_gifs`, `download_gif`, `gif_to_video`, `o
 
 ---
 
+## 📦 Installation
+
+> **Available on PyPI:** [`gifboom`](https://pypi.org/project/gifboom/)
+
+```bash
+# Recommended — with uv (fastest)
+uv add gifboom
+
+# or pip
+pip install gifboom
+
+# or pipx (isolated global CLI)
+pipx install gifboom
+```
+
+> **FFmpeg** is required for all video/GIF conversion features:
+> ```bash
+> brew install ffmpeg          # macOS
+> sudo apt install ffmpeg      # Ubuntu / Debian
+> ```
+
+### Optional extras
+```bash
+pip install 'gifboom[mcp]'   # MCP server support
+pip install 'gifboom[tui]'   # Interactive TUI (Textual)
+pip install 'gifboom[dev]'   # Dev tools (pytest, ruff, mypy)
+```
+
+---
+
 ## 🚀 Quick Start
 
-### Step 1: Install
-```bash
-pip install gifboom
-brew install ffmpeg   # Required for video magic ✨
-```
+### Step 1: Install (see above)
+
 
 ### Step 2: Get Free API Keys in 1-Click 🔑
 Don't have API keys yet? No problem! `gifboom` will launch the developer portals for you:
