@@ -80,10 +80,7 @@ TOOLS = [
     ),
     Tool(
         name="gif_to_video",
-        description=(
-            "Convert a GIF file to MP4, WebM, or MOV video. "
-            "Requires ffmpeg. Returns the output file path."
-        ),
+        description=("Convert a GIF file to MP4, WebM, or MOV video. Requires ffmpeg. Returns the output file path."),
         inputSchema={
             "type": "object",
             "properties": {

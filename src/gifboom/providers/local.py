@@ -50,15 +50,11 @@ class LocalProvider(BaseProvider):
         matches = [p for p in self._all_gifs() if q in p.name.lower()]
         page = matches[offset : offset + limit]
         items = [self._build_gif(p) for p in page]
-        return SearchResult(
-            items=items, total=len(matches), query=query, provider=self.name, offset=offset
-        )
+        return SearchResult(items=items, total=len(matches), query=query, provider=self.name, offset=offset)
 
     async def get_by_id(self, gif_id: str) -> SearchResult:
         for p in self._all_gifs():
             uid = __import__("hashlib").md5(str(p).encode()).hexdigest()[:12]
             if uid == gif_id:
-                return SearchResult(
-                    items=[self._build_gif(p)], total=1, query=gif_id, provider=self.name
-                )
+                return SearchResult(items=[self._build_gif(p)], total=1, query=gif_id, provider=self.name)
         return SearchResult(items=[], total=0, query=gif_id, provider=self.name)

@@ -129,13 +129,9 @@ def search(
     provider: Annotated[
         str | None, typer.Option("--provider", "-p", help="Provider: giphy | tenor | klipy | local")
     ] = None,
-    limit: Annotated[
-        int, typer.Option("--limit", "-n", help="Max number of results to fetch")
-    ] = 10,
+    limit: Annotated[int, typer.Option("--limit", "-n", help="Max number of results to fetch")] = 10,
     offset: Annotated[int, typer.Option("--offset", help="Pagination offset index")] = 0,
-    rating: Annotated[
-        str, typer.Option("--rating", "-r", help="Content rating filter: g | pg | pg-13 | r")
-    ] = "g",
+    rating: Annotated[str, typer.Option("--rating", "-r", help="Content rating filter: g | pg | pg-13 | r")] = "g",
     fmt: Annotated[
         str,
         typer.Option("--format", "-f", help="Output format: plain | json | tsv | markdown | table"),
@@ -184,12 +180,8 @@ def download(
         Path | None,
         typer.Option("--output", "-o", help="Custom output path for the downloaded .gif"),
     ] = None,
-    provider: Annotated[
-        str | None, typer.Option("--provider", "-p", help="Provider if using 'q:query' syntax")
-    ] = None,
-    force: Annotated[
-        bool, typer.Option("--force", help="Bypass local disk cache and force re-download")
-    ] = False,
+    provider: Annotated[str | None, typer.Option("--provider", "-p", help="Provider if using 'q:query' syntax")] = None,
+    force: Annotated[bool, typer.Option("--force", help="Bypass local disk cache and force re-download")] = False,
 ):
     """
     📥 Download a GIF by URL or search & auto-save the top result.
@@ -229,9 +221,7 @@ def download(
 def still(
     source: Annotated[str, typer.Argument(help="Path to local GIF or HTTP URL")],
     output: Annotated[Path | None, typer.Option("--output", "-o", help="Output PNG path")] = None,
-    at: Annotated[
-        str, typer.Option("--at", help="Timestamp to extract (e.g. '1.5' or '00:00:01.5')")
-    ] = "0",
+    at: Annotated[str, typer.Option("--at", help="Timestamp to extract (e.g. '1.5' or '00:00:01.5')")] = "0",
 ):
     """
     🖼️ Extract a single PNG frame from a GIF at a given timestamp.
@@ -261,9 +251,7 @@ def still(
 def sheet(
     source: Annotated[str, typer.Argument(help="Path to local GIF or HTTP URL")],
     output: Annotated[Path | None, typer.Option("--output", "-o", help="Output PNG path")] = None,
-    frames: Annotated[
-        int, typer.Option("--frames", "-n", help="Total number of frames to sample")
-    ] = 9,
+    frames: Annotated[int, typer.Option("--frames", "-n", help="Total number of frames to sample")] = 9,
     cols: Annotated[int, typer.Option("--cols", help="Number of columns in grid layout")] = 3,
 ):
     """
@@ -283,9 +271,7 @@ def sheet(
     from gifboom.converters import gif_sheet
 
     out = output or Path(source).with_suffix(".sheet.png")
-    gif_sheet(
-        Path(source) if not source.startswith("http") else source, out, frames=frames, cols=cols
-    )
+    gif_sheet(Path(source) if not source.startswith("http") else source, out, frames=frames, cols=cols)
     rprint(f"[green]✓[/] Saved contact sheet: {out}")
 
 
@@ -295,19 +281,13 @@ def sheet(
 @convert_app.command("gif2video")
 def convert_gif2video(
     input: Annotated[Path, typer.Argument(help="Source .gif file path")],
-    output: Annotated[
-        Path, typer.Option("--output", "-o", help="Destination video path (.mp4, .webm, .mov)")
-    ],
+    output: Annotated[Path, typer.Option("--output", "-o", help="Destination video path (.mp4, .webm, .mov)")],
     crf: Annotated[
         int,
         typer.Option("--crf", help="Video quality/compression (0=lossless, 23=default, 51=worst)"),
     ] = 23,
-    fps: Annotated[
-        int | None, typer.Option("--fps", help="Target FPS (default keeps source FPS)")
-    ] = None,
-    scale: Annotated[
-        str | None, typer.Option("--scale", help="Scale filter e.g. '640:-1' (width:height)")
-    ] = None,
+    fps: Annotated[int | None, typer.Option("--fps", help="Target FPS (default keeps source FPS)")] = None,
+    scale: Annotated[str | None, typer.Option("--scale", help="Scale filter e.g. '640:-1' (width:height)")] = None,
 ):
     """
     🎬 Convert animated GIF → MP4, WebM, or MOV video.
@@ -344,9 +324,7 @@ def convert_video2gif(
         str | None,
         typer.Option("--start", "-s", help="Start time timestamp e.g. '00:00:02' or '2.0'"),
     ] = None,
-    end: Annotated[
-        str | None, typer.Option("--end", "-e", help="End time timestamp e.g. '00:00:07' or '7.0'")
-    ] = None,
+    end: Annotated[str | None, typer.Option("--end", "-e", help="End time timestamp e.g. '00:00:07' or '7.0'")] = None,
 ):
     """
     📽️ Convert video file → high-quality animated GIF (2-pass palette generation).
@@ -373,12 +351,8 @@ def convert_video2gif(
 @convert_app.command("optimize")
 def convert_optimize(
     input: Annotated[Path, typer.Argument(help="Source .gif file path")],
-    output: Annotated[
-        Path | None, typer.Option("--output", "-o", help="Destination .gif path")
-    ] = None,
-    colors: Annotated[
-        int, typer.Option("--colors", help="Reduced color count (e.g. 64 or 128)")
-    ] = 128,
+    output: Annotated[Path | None, typer.Option("--output", "-o", help="Destination .gif path")] = None,
+    colors: Annotated[int, typer.Option("--colors", help="Reduced color count (e.g. 64 or 128)")] = 128,
 ):
     """
     ⚡ Reduce GIF file size by lowering color depth (palette quantization).
@@ -408,9 +382,7 @@ def convert_trim(
     input: Annotated[Path, typer.Argument(help="Source .gif file path")],
     start: Annotated[str, typer.Option("--start", "-s", help="Start timestamp e.g. '0.5'")],
     end: Annotated[str, typer.Option("--end", "-e", help="End timestamp e.g. '3.0'")],
-    output: Annotated[
-        Path | None, typer.Option("--output", "-o", help="Destination .gif path")
-    ] = None,
+    output: Annotated[Path | None, typer.Option("--output", "-o", help="Destination .gif path")] = None,
 ):
     """✂️ Trim a GIF to a specific time range."""
     from gifboom.converters import gif_trim
@@ -423,12 +395,8 @@ def convert_trim(
 @convert_app.command("batch")
 def convert_batch(
     in_dir: Annotated[Path, typer.Argument(help="Directory containing GIF files to convert")],
-    format: Annotated[
-        str, typer.Option("--format", "-f", help="Target format: mp4 | webm | mov")
-    ] = "mp4",
-    out_dir: Annotated[
-        Path | None, typer.Option("--out-dir", help="Destination output directory")
-    ] = None,
+    format: Annotated[str, typer.Option("--format", "-f", help="Target format: mp4 | webm | mov")] = "mp4",
+    out_dir: Annotated[Path | None, typer.Option("--out-dir", help="Destination output directory")] = None,
     crf: Annotated[int, typer.Option("--crf", help="Video compression level")] = 23,
     fps: Annotated[int | None, typer.Option("--fps", help="Target FPS")] = None,
 ):
@@ -497,9 +465,7 @@ def keys(
     if provider:
         p_name = provider.lower()
         if p_name not in providers_map or not providers_map[p_name]["url"]:
-            rprint(
-                f"[red]Unknown or keyless provider:[/] {provider}. Available options: giphy, tenor, klipy"
-            )
+            rprint(f"[red]Unknown or keyless provider:[/] {provider}. Available options: giphy, tenor, klipy")
             raise typer.Exit(1)
         item = providers_map[p_name]
         rprint(f"[bold cyan]Launching API key portal for {item['name'].upper()}...[/]")
