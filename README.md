@@ -2,6 +2,8 @@
 
 # 🎬 gifboom
 
+> **Turn videos into optimized GIFs from the terminal** — create, trim, compress and optimize GIFs with one command.
+
 ### *The ultimate open-source GIF engine for Humans & AI Agents*
 
 [![PyPI Version](https://img.shields.io/pypi/v/gifboom?style=for-the-badge&color=ff4757)](https://pypi.org/project/gifboom/)
